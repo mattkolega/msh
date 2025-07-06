@@ -4,11 +4,15 @@ const commands = @import("commands.zig");
 
 const MAX_BUFFER_SIZE = 4096;
 
+/// Converts an iterator to an array of items
 fn convertIteratorToArr(allocator: std.mem.Allocator, iter: *std.mem.SplitIterator(u8, .scalar)) ![]const []const u8 {
     var itemList = std.ArrayList([]const u8).init(allocator);
     defer itemList.deinit();
 
     while (iter.next()) |item| {
+        if (std.mem.eql(u8, item, "\r") or std.mem.eql(u8, item, "\n") or std.mem.eql(u8, item, "\t") or std.mem.eql(u8, item, "")) { // Ignore control chars
+            continue;
+        }
         try itemList.append(item);
     }
 

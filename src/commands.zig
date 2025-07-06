@@ -6,12 +6,16 @@ pub const Command = enum { cd, exit, pwd };
 
 /// Changes the working directory
 pub fn cd(stdout: anytype, args: []const []const u8) !void {
-    if (args.len != 1) {
+    var path: []const u8 = undefined;
+
+    if (args.len == 0) {
+        path = "~";
+    } else if (args.len == 1) {
+        path = args[0];
+    } else {
         try stdout.print("cd: too many arguments\n", .{});
         return;
     }
-
-    var path = args[0];
 
     if (std.mem.eql(u8, path, "~")) {
         path = std.posix.getenv("HOME") orelse {
