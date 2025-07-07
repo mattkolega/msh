@@ -2,7 +2,7 @@
 
 const std = @import("std");
 
-pub const Command = enum { cd, exit, mkdir, pwd, touch };
+pub const Command = enum { cd, exit, mkdir, pwd, rmdir, touch };
 
 /// Changes the working directory
 pub fn cd(stdout: anytype, args: []const []const u8) !void {
@@ -58,6 +58,29 @@ pub fn pwd(stdout: anytype) !void {
     const currentDir = try std.process.getCwd(&buffer);
 
     try stdout.print("{s}\n", .{currentDir});
+}
+
+/// Deletes a directory
+pub fn rmdir(stdout: anytype, args: []const []const u8) !void {
+    if (args.len == 0) {
+        try stdout.print("rmdir: missing path\n", .{});
+        return;
+    } else if (args.len > 1) {
+        try stdout.print("rmdir: too many arguments\n", .{});
+        return;
+    }
+
+    const path = args[0];
+
+    std.fs.cwd().deleteDir(path) catch |err| {
+        switch (err) {
+            error.AccessDenied => try stdout.print("rmdir: failed to remove `{s}`: Permission denied\n", .{path}),
+            error.DirNotEmpty => try stdout.print("rmdir: failed to remove `{s}`: Directory not empty\n", .{path}),
+            error.NotDir => try stdout.print("rmdir: failed to remove `{s}`: Not a directory\n", .{path}),
+            error.FileNotFound => try stdout.print("rmdir: failed to remove `{s}`: Doesn't exist\n", .{path}),
+            else => return err,
+        }
+    };
 }
 
 /// Creates a new file, if it alreadys exists then timestamps are updated

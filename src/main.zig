@@ -69,6 +69,9 @@ pub fn main() !void {
             .pwd => {
                 try commands.pwd(&stdout);
             },
+            .rmdir => {
+                try commands.rmdir(&stdout, args);
+            },
             .touch => {
                 try commands.touch(&stdout, args);
             },
