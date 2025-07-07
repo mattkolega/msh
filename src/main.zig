@@ -63,6 +63,9 @@ pub fn main() !void {
             .exit => {
                 std.process.exit(0);
             },
+            .mkdir => {
+                try commands.mkdir(&stdout, args);
+            },
             .pwd => {
                 try commands.pwd(&stdout);
             },
