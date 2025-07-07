@@ -46,10 +46,11 @@ pub fn main() !void {
 
         var iter = std.mem.splitScalar(u8, input, ' ');
 
-        const commandStr = iter.next() orelse continue;
+        const commandToken = iter.next() orelse continue;
+        if (commandToken.len == 0) continue;
 
-        const command = std.meta.stringToEnum(commands.Command, commandStr) orelse {
-            try stdout.print("msh: command not found: {s}\n", .{commandStr});
+        const command = std.meta.stringToEnum(commands.Command, commandToken) orelse {
+            try stdout.print("msh: command not found: {s}\n", .{commandToken});
             continue;
         };
 
