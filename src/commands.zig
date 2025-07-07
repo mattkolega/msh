@@ -2,7 +2,47 @@
 
 const std = @import("std");
 
-pub const Command = enum { cd, exit, pwd };
+pub const Command = enum { cd, exit, pwd, touch };
+
+/// Creates a new file, if it alreadys exists then timestamps are updated
+pub fn touch(stdout: anytype, args: []const []const u8) !void {
+    if (args.len == 0) {
+        try stdout.print("touch: missing path\n", .{});
+        return;
+    } else if (args.len > 1) {
+        try stdout.print("touch: too many arguments\n", .{});
+        return;
+    }
+
+    const path = args[0];
+
+    var fileAlreadyExists = false;
+
+    if (std.fs.cwd().createFile(path, .{ .exclusive = true })) |file| {
+        file.close();
+    } else |err| {
+        switch (err) {
+            error.PathAlreadyExists => fileAlreadyExists = true,
+            else => return err,
+        }
+    }
+
+    // Return if file didn't already exist and it has now been successfully created.
+    // Otherwise we want to try to update the existing file's timestamps to the current time
+
+    if (!fileAlreadyExists) return;
+
+    const existingFile = std.fs.cwd().openFile(path, .{}) catch {
+        try stdout.print("touch: failed to modify file: {s}\n", .{path});
+        return;
+    };
+    defer existingFile.close();
+
+    const currentTime = std.time.nanoTimestamp();
+    existingFile.updateTimes(currentTime, currentTime) catch {
+        try stdout.print("touch: failed to update file timestamp: {s}\n", .{path});
+    };
+}
 
 /// Changes the working directory
 pub fn cd(stdout: anytype, args: []const []const u8) !void {

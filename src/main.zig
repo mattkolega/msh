@@ -65,6 +65,9 @@ pub fn main() !void {
             .pwd => {
                 try commands.pwd(&stdout);
             },
+            .touch => {
+                try commands.touch(&stdout, args);
+            },
         }
 
         try bw.flush();
